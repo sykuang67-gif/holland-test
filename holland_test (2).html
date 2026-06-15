@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>霍兰德职业兴趣测试 | RIASEC</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: "PingFang SC", "Microsoft YaHei", sans-serif; background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); min-height: 100vh; color: #fff; }
+
+  .container { max-width: 760px; margin: 0 auto; padding: 20px; }
+
+  .header { text-align: center; padding: 40px 0 20px; }
+  .header h1 { font-size: 2rem; font-weight: 700; background: linear-gradient(90deg, #a78bfa, #60a5fa, #34d399); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px; }
+  .header p { color: #94a3b8; font-size: 0.95rem; line-height: 1.6; }
+  .header .tags { margin-top: 16px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .tag { background: rgba(167,139,250,0.15); border: 1px solid rgba(167,139,250,0.3); color: #a78bfa; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; }
+
+  .progress-wrap { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 16px 20px; margin: 20px 0; border: 1px solid rgba(255,255,255,0.08); }
+  .progress-info { display: flex; justify-content: space-between; font-size: 0.85rem; color: #94a3b8; margin-bottom: 8px; }
+  .progress-bar-bg { background: rgba(255,255,255,0.1); border-radius: 8px; height: 8px; overflow: hidden; }
+  .progress-bar { height: 100%; background: linear-gradient(90deg, #a78bfa, #60a5fa); border-radius: 8px; transition: width 0.4s ease; width: 0%; }
+
+  .card { background: rgba(255,255,255,0.05); border-radius: 20px; padding: 32px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); }
+
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* 学历选择 */
+  .edu-intro { text-align: center; margin-bottom: 28px; }
+  .edu-intro .icon { font-size: 3rem; margin-bottom: 12px; }
+  .edu-intro .title { font-size: 1.3rem; font-weight: 600; margin-bottom: 8px; }
+  .edu-intro .desc { color: #94a3b8; font-size: 0.88rem; line-height: 1.7; }
+
+  .edu-options { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+  .edu-option { background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 16px 20px; cursor: pointer; transition: all 0.25s; position: relative; }
+  .edu-option:hover { border-color: #a78bfa; background: rgba(167,139,250,0.08); transform: translateY(-1px); }
+  .edu-option.selected { border-color: #a78bfa; background: rgba(167,139,250,0.12); }
+  .edu-option.selected .edu-radio { background: #a78bfa; border-color: #a78bfa; }
+  .edu-option.selected .edu-radio::after { transform: scale(1); }
+  .edu-radio { width: 20px; height: 20px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.3); display: inline-block; vertical-align: middle; margin-right: 12px; position: relative; transition: all 0.2s; flex-shrink: 0; }
+  .edu-radio::after { content: ''; position: absolute; width: 10px; height: 10px; background: #fff; border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%,-50%) scale(0); transition: transform 0.2s; }
+  .edu-option-content { display: inline-block; vertical-align: middle; }
+  .edu-option-label { font-size: 0.95rem; font-weight: 600; margin-bottom: 3px; }
+  .edu-option-sub { font-size: 0.8rem; color: #94a3b8; }
+
+  /* Welcome */
+  .welcome-icon { font-size: 4rem; text-align: center; margin-bottom: 16px; }
+  .welcome-title { text-align: center; font-size: 1.4rem; font-weight: 600; margin-bottom: 12px; }
+  .welcome-desc { color: #94a3b8; text-align: center; line-height: 1.8; margin-bottom: 24px; font-size: 0.92rem; }
+  .welcome-types { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 28px; }
+  .type-chip { background: rgba(255,255,255,0.06); border-radius: 12px; padding: 10px 8px; text-align: center; border: 1px solid rgba(255,255,255,0.08); }
+  .type-chip .letter { font-size: 1.3rem; font-weight: 800; }
+  .type-chip .name { font-size: 0.75rem; color: #94a3b8; margin-top: 2px; }
+  .type-chip.R .letter { color: #ef4444; }
+  .type-chip.I .letter { color: #3b82f6; }
+  .type-chip.A .letter { color: #a855f7; }
+  .type-chip.S .letter { color: #22c55e; }
+  .type-chip.E .letter { color: #f59e0b; }
+  .type-chip.C .letter { color: #06b6d4; }
+
+  /* Question */
+  .question-text { font-size: 1.1rem; font-weight: 500; line-height: 1.7; margin-bottom: 24px; }
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option { background: rgba(255,255,255,0.06); border: 2px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 14px 18px; cursor: pointer; transition: all 0.2s; font-size: 0.95rem; text-align: center; }
+  .option:hover { border-color: #a78bfa; background: rgba(167,139,250,0.1); }
+  .option.selected { border-color: #a78bfa; background: rgba(167,139,250,0.15); color: #c4b5fd; }
+
+  /* Nav */
+  .nav { display: flex; justify-content: space-between; margin-top: 24px; gap: 12px; }
+  .btn { padding: 12px 28px; border-radius: 12px; border: none; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: inherit; }
+  .btn-prev { background: rgba(255,255,255,0.08); color: #94a3b8; }
+  .btn-prev:hover { background: rgba(255,255,255,0.12); }
+  .btn-next { background: linear-gradient(135deg, #a78bfa, #7c3aed); color: #fff; box-shadow: 0 4px 15px rgba(167,139,250,0.3); }
+  .btn-next:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(167,139,250,0.4); }
+  .btn-next:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .edu-note { text-align: center; color: #94a3b8; font-size: 0.82rem; margin-top: 14px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+
+  /* Result */
+  .edu-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(167,139,250,0.15); border: 1px solid rgba(167,139,250,0.3); color: #c4b5fd; padding: 4px 14px; border-radius: 20px; font-size: 0.82rem; margin-bottom: 10px; }
+  .result-header { text-align: center; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 24px; }
+  .result-header .congrats { font-size: 0.85rem; color: #94a3b8; margin-bottom: 6px; }
+  .result-header .main-type { font-size: 2.2rem; font-weight: 800; margin-bottom: 4px; }
+  .result-header .main-type-label { color: #94a3b8; font-size: 0.9rem; }
+
+  .riasec-chart { margin: 24px 0; }
+  .riasec-bar { margin-bottom: 14px; }
+  .riasec-label { display: flex; justify-content: space-between; font-size: 0.88rem; margin-bottom: 5px; }
+  .riasec-label .letter { font-weight: 700; }
+  .riasec-label .score { color: #94a3b8; }
+  .bar-bg { background: rgba(255,255,255,0.08); border-radius: 6px; height: 10px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 6px; transition: width 1s ease; }
+
+  .type-desc { background: rgba(167,139,250,0.08); border-radius: 14px; padding: 16px; margin-bottom: 24px; border-left: 3px solid #a78bfa; }
+  .type-desc p { color: #c4b5fd; line-height: 1.7; font-size: 0.9rem; }
+
+  .matched-majors { margin-top: 8px; }
+  .matched-majors h3 { font-size: 1rem; color: #a78bfa; margin-bottom: 14px; display: flex; align-items: center; gap: 6px; }
+  .edu-filter-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .edu-filter-btn { padding: 5px 14px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); color: #94a3b8; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; font-family: inherit; }
+  .edu-filter-btn:hover { border-color: #a78bfa; color: #c4b5fd; }
+  .edu-filter-btn.active { background: rgba(167,139,250,0.2); border-color: #a78bfa; color: #c4b5fd; }
+
+  .major-list { display: flex; flex-direction: column; gap: 8px; }
+  .major-item { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 14px 16px; border: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; gap: 12px; transition: all 0.2s; }
+  .major-item:hover { border-color: rgba(167,139,250,0.3); background: rgba(167,139,250,0.05); }
+  .major-item.hidden { display: none; }
+  .major-rank { font-size: 0.75rem; font-weight: 700; color: #fff; background: linear-gradient(135deg, #a78bfa, #7c3aed); padding: 2px 8px; border-radius: 20px; min-width: 28px; text-align: center; }
+  .major-rank.top { background: linear-gradient(135deg, #f59e0b, #ef4444); }
+  .major-name { font-size: 0.92rem; font-weight: 500; }
+  .major-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-left: 6px; }
+  .major-tag { font-size: 0.7rem; padding: 1px 7px; border-radius: 10px; }
+  .major-tag.预备技师 { background: rgba(239,68,68,0.2); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
+  .major-tag.三年制 { background: rgba(59,130,246,0.2); color: #93c5fd; border: 1px solid rgba(59,130,246,0.3); }
+  .major-tag.四年制 { background: rgba(34,197,94,0.2); color: #86efac; border: 1px solid rgba(34,197,94,0.3); }
+  .major-tag.中级工 { background: rgba(245,158,11,0.2); color: #fcd34d; border: 1px solid rgba(245,158,11,0.3); }
+  .major-tag.高级技工 { background: rgba(168,85,247,0.2); color: #d8b4fe; border: 1px solid rgba(168,85,247,0.3); }
+  .major-match { font-size: 0.78rem; color: #94a3b8; margin-left: auto; white-space: nowrap; }
+  .major-match strong { color: #22c55e; font-size: 0.9rem; }
+
+  .btn-retest { width: 100%; margin-top: 16px; padding: 14px; background: linear-gradient(135deg, #1e1b4b, #312e81); border: 1px solid rgba(167,139,250,0.3); color: #c4b5fd; font-size: 0.95rem; }
+
+  .disclaimer { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.25); border-radius: 12px; padding: 12px 16px; margin-top: 20px; color: #fcd34d; font-size: 0.82rem; line-height: 1.7; text-align: center; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .fade-in { animation: fadeIn 0.4s ease; }
+
+  @media (max-width: 600px) {
+    .card { padding: 20px; }
+    .welcome-types { grid-template-columns: repeat(2, 1fr); }
+    .header h1 { font-size: 1.5rem; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>🎯 霍兰德职业兴趣测试</h1>
+    <p>Holland RIASEC 职业倾向测评 · 约5分钟 · 42道情境题</p>
+    <div class="tags">
+      <span class="tag">RIASEC 六型理论</span>
+      <span class="tag">匹配 29 个专业</span>
+      <span class="tag">科学测评</span>
+    </div>
+  </div>
+
+  <div class="progress-wrap" id="progressWrap" style="display:none;">
+    <div class="progress-info">
+      <span id="progressText">题目 1 / 42</span>
+      <span id="progressPct">0%</span>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <!-- Screen 0: 学历选择 -->
+    <div class="screen active" id="screen-edu">
+      <div class="edu-intro">
+        <div class="icon">🎓</div>
+        <div class="title">先选择你的学历背景</div>
+        <div class="desc">不同学历层次可报读的专业方向不同，<br>测评结果将为你精准匹配适合的专业！</div>
+      </div>
+      <div class="edu-options">
+        <div class="edu-option" onclick="selectEdu(1)" id="edu-1">
+          <div class="edu-radio"></div>
+          <div class="edu-option-content">
+            <div class="edu-option-label">大专相关专业毕业生</div>
+            <div class="edu-option-sub">可报读预备技师专业</div>
+          </div>
+        </div>
+        <div class="edu-option" onclick="selectEdu(2)" id="edu-2">
+          <div class="edu-radio"></div>
+          <div class="edu-option-content">
+            <div class="edu-option-label">高中 / 中职 / 中技 毕业生</div>
+            <div class="edu-option-sub">可报读三年制、四年制专业</div>
+          </div>
+        </div>
+        <div class="edu-option" onclick="selectEdu(3)" id="edu-3">
+          <div class="edu-radio"></div>
+          <div class="edu-option-content">
+            <div class="edu-option-label">初中毕业生</div>
+            <div class="edu-option-sub">可报读三年制中级工、五年制高级技工专业</div>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-next" style="width:100%;" id="eduStartBtn" onclick="startTest()" disabled>开始测评 →</button>
+      <div class="edu-note">📌 请先选择学历再开始测试，专业推荐将据此精准筛选</div>
+    </div>
+
+    <!-- Screen 1: Welcome -->
+    <div class="screen" id="screen-welcome">
+      <div class="welcome-icon">🧭</div>
+      <div class="welcome-title">探索你的职业兴趣密码</div>
+      <div class="welcome-desc">
+        霍兰德职业兴趣理论（RIASEC）由美国心理学家约翰·霍兰德提出，<br>
+        将人的职业兴趣分为六大类型，帮助你找到最适合自己的专业方向。
+      </div>
+      <div class="welcome-types">
+        <div class="type-chip R"><div class="letter">R</div><div class="name">实用型</div></div>
+        <div class="type-chip I"><div class="letter">I</div><div class="name">研究型</div></div>
+        <div class="type-chip A"><div class="letter">A</div><div class="name">艺术型</div></div>
+        <div class="type-chip S"><div class="letter">S</div><div class="name">社会型</div></div>
+        <div class="type-chip E"><div class="letter">E</div><div class="name">企业型</div></div>
+        <div class="type-chip C"><div class="letter">C</div><div class="name">常规型</div></div>
+      </div>
+      <div style="text-align:center; color:#94a3b8; font-size:0.85rem; margin-bottom:20px;">
+        💡 请根据每道题描述与你的符合程度选择最接近的选项
+      </div>
+      <button class="btn btn-next" style="width:100%;" onclick="startFromWelcome()">开始测评 →</button>
+    </div>
+
+    <!-- Screen 2: Question -->
+    <div class="screen" id="screen-question">
+      <div class="question-text" id="questionText"></div>
+      <div class="options" id="optionsContainer"></div>
+      <div class="nav">
+        <button class="btn btn-prev" id="prevBtn" onclick="prevQuestion()">← 上一题</button>
+        <button class="btn btn-next" id="nextBtn" onclick="nextQuestion()" disabled>下一题 →</button>
+      </div>
+    </div>
+
+    <!-- Screen 3: Result -->
+    <div class="screen" id="screen-result">
+      <div class="result-header">
+        <div class="edu-badge" id="eduBadge"></div>
+        <div class="congrats">✅ 测评完成！你的职业兴趣类型是</div>
+        <div class="main-type" id="mainTypeDisplay"></div>
+        <div class="main-type-label" id="mainTypeLabel"></div>
+      </div>
+
+      <div class="riasec-chart" id="riasecChart"></div>
+
+      <div class="type-desc" id="typeDesc"></div>
+
+      <div class="matched-majors">
+        <h3>🎓 匹配专业推荐</h3>
+        <div class="edu-filter-bar" id="eduFilterBar"></div>
+        <div class="major-list" id="majorList"></div>
+      </div>
+
+      <div class="disclaimer">⚠️ 本测试结果仅为参考，不构成志愿填报与升学的最终依据，请结合个人成绩、家庭情况等因素综合选择。</div>
+
+      <button class="btn btn-retest" onclick="retest()">🔄 重新测试</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============ 42道情境题 ============
+const questions = [
+  { q: "我更喜欢动手做事，比如修理东西、拆装机器，而非长时间坐在桌前。", dims: [3,0,0,0,0,0] },
+  { q: "我喜欢用工具制作东西，比如木工、金工或电子制作，有成品会很有成就感。", dims: [3,1,0,0,0,0] },
+  { q: "在户外或车间环境比在办公室更让我感到自在。", dims: [2,0,0,0,0,0] },
+  { q: "我喜欢汽车、无人机、机器人等机械设备的工作原理。", dims: [2,1,0,0,0,0] },
+  { q: "我会主动尝试维修家用电器或电子产品，而不总是找人帮忙。", dims: [3,1,0,0,0,0] },
+  { q: "比起写报告，我更喜欢实际操作、执行明确的步骤完成任务。", dims: [2,0,0,0,0,1] },
+  { q: "我对科学原理、实验过程和技术创新背后的逻辑很感兴趣。", dims: [1,3,0,0,0,0] },
+  { q: "我愿意花时间研究一个复杂的问题，直到真正弄懂为止。", dims: [0,3,1,0,0,0] },
+  { q: "我喜欢查资料、做分析，探索事物之间的因果关系。", dims: [0,3,0,0,0,0] },
+  { q: "面对未知问题，我会先思考再动手，而非盲目尝试。", dims: [1,2,0,0,0,1] },
+  { q: "我对人工智能、大数据、算法等前沿技术有好奇心。", dims: [1,3,0,0,0,0] },
+  { q: "我享受解决难题的过程，即使需要反复推敲也乐在其中。", dims: [0,3,0,0,0,0] },
+  { q: "我喜欢自由表达想法，讨厌被固定流程束缚。", dims: [0,0,3,0,0,0] },
+  { q: "我有绘画、音乐、写作或其他艺术创作方面的兴趣或天赋。", dims: [0,0,3,0,0,0] },
+  { q: "我更喜欢有美感、有创意的工作环境，而非整齐划一的格子间。", dims: [0,0,3,0,0,0] },
+  { q: "我希望未来的工作能让我发挥想象力和个人风格。", dims: [0,1,3,0,0,0] },
+  { q: "我会被设计、视觉创意、内容创作等领域吸引。", dims: [0,1,3,0,0,0] },
+  { q: "比起按规则做事，我更愿意创造独特的东西。", dims: [0,0,3,0,0,0] },
+  { q: "我享受帮助别人解决问题的过程，比如辅导同学或提供建议。", dims: [0,0,0,3,0,0] },
+  { q: "我喜欢与人沟通交流，在团队合作中感到更自在。", dims: [0,0,0,3,0,0] },
+  { q: "我愿意从事教育、医疗、服务类工作，直接与人打交道。", dims: [0,0,1,3,0,0] },
+  { q: "我善于倾听，能够理解他人的情绪和需求。", dims: [0,0,0,3,0,0] },
+  { q: "比起独自工作，我更喜欢有互动、有合作的氛围。", dims: [0,0,0,2,1,0] },
+  { q: "我相信工作应该有社会价值，能帮助到他人。", dims: [0,0,1,2,0,0] },
+  { q: "我喜欢影响他人，带领团队朝着目标努力。", dims: [0,0,0,1,3,0] },
+  { q: "我敢于尝试新事物，愿意承担风险追求更大的回报。", dims: [1,0,0,0,3,0] },
+  { q: "我善于说服别人，在讨论中常常能提出有说服力的观点。", dims: [0,0,0,1,3,0] },
+  { q: "我希望未来能创业或成为管理者，发挥领导力。", dims: [0,0,0,0,3,0] },
+  { q: "我喜欢有挑战性的目标，并享受说服他人一起完成的过程。", dims: [0,0,0,1,3,0] },
+  { q: "我善于组织活动或项目，能合理分配资源协调各方。", dims: [0,0,0,1,2,1] },
+  { q: "我喜欢有清晰流程和明确标准的工作，知道自己要做什么。", dims: [0,0,0,0,0,3] },
+  { q: "我做事有条理，善于整理数据、文件和记录信息。", dims: [0,0,0,0,0,3] },
+  { q: "我擅长使用办公软件，能够处理大量的文字和数据工作。", dims: [0,1,0,0,0,3] },
+  { q: "比起快速变化的环境，我更喜欢稳定、可预测的工作。", dims: [0,0,0,0,0,2] },
+  { q: "我注重细节，能够耐心完成重复性高但要求精准的任务。", dims: [1,0,0,0,0,3] },
+  { q: "我喜欢遵守规则，按照既定程序把事情做好。", dims: [0,0,0,0,0,2] },
+];
+
+const dimColors = { R:'#ef4444', I:'#3b82f6', A:'#a855f7', S:'#22c55e', E:'#f59e0b', C:'#06b6d4' };
+const dimNames = { R:'实用型', I:'研究型', A:'艺术型', S:'社会型', E:'企业型', C:'常规型' };
+const dimLetters = ['R','I','A','S','E','C'];
+
+const dimDescs = {
+  R: "实用型的人喜欢动手操作、使用工具、处理具体的事物。他们务实、动手能力强，享受制造和修理东西的过程。适合从事机械、电子、建筑、维修等技术类工作。",
+  I: "研究型的人喜欢思考、分析和探索事物的原理。他们好奇心强、善于推理，享受解决复杂问题的过程。适合从事科研、技术开发、数据分析等需要深度思考的工作。",
+  A: "艺术型的人喜欢自由表达和创造。他们想象力丰富、追求独特美感，不喜欢被规则束缚。适合从事设计、创意、内容创作、艺术表演等需要个人风格的工作。",
+  S: "社会型的人喜欢与人交流、帮助和教导他人。他们善于沟通、同理心强，享受人际互动。适合从事教育、医疗、服务、咨询等需要与人打交道的工作。",
+  E: "企业型的人喜欢影响和领导他人，追求目标导向的工作。他们有冒险精神，善于说服和组织。适合从事管理、销售、创业、行政等需要领导力和社交能力的工作。",
+  C: "常规型的人喜欢有组织、有秩序的工作。他们注重细节、善于处理数据和文件，享受按计划执行的过程。适合从事财务、行政、统计、办公室管理等需要条理性和精准度的工作。"
+};
+
+// 29个专业: [专业名, [R,I,A,S,E,C]权重, 可报学历[1=大专,2=高中/中职,3=初中], 学历对应层次]
+const majorRules = [
+  { name:"机电一体化技术",              score:[5,3,0,0,0,2], edu:[1,2], tags:["预备技师","三年制"] },
+  { name:"机电设备安装与维修",          score:[5,2,0,0,0,1], edu:[1,2], tags:["预备技师","三年制"] },
+  { name:"工业机器人应用与维护",        score:[4,4,0,0,0,1], edu:[1,2], tags:["预备技师","三年制"] },
+  { name:"智能制造技术应用",            score:[3,5,1,0,0,1], edu:[1,2], tags:["预备技师","三年制"] },
+  { name:"数控加工",                     score:[5,2,0,0,0,2], edu:[1,2], tags:["预备技师","三年制"] },
+  { name:"模具制造",                     score:[5,2,1,0,0,1], edu:[1,2], tags:["预备技师","三年制"] },
+  { name:"飞机维修",                     score:[5,2,0,0,0,2], edu:[1,2], tags:["预备技师","三年制"] },
+  { name:"城市轨道交通车辆运用与检修",  score:[5,2,0,0,0,1], edu:[1,2], tags:["预备技师","三年制"] },
+  { name:"汽车维修",                     score:[5,1,0,0,0,1], edu:[2,3],   tags:["三年制","中级工"] },
+  { name:"新能源汽车检测与维修",         score:[4,3,0,0,0,1], edu:[1,2,3], tags:["预备技师","三年制","中级工"] },
+  { name:"电子商务",                     score:[1,2,1,2,4,1], edu:[1,2,3], tags:["预备技师","三年制","中级工"] },
+  { name:"新媒体运营",                   score:[0,1,4,3,3,0], edu:[1,2,3], tags:["预备技师","三年制","中级工"] },
+  { name:"跨境电子商务",                 score:[1,2,1,2,5,1], edu:[1,2], tags:["预备技师","三年制"] },
+  { name:"会计",                         score:[0,1,0,1,2,5], edu:[1,2,3], tags:["预备技师","三年制","中级工"] },
+  { name:"铁路客运服务",                 score:[1,0,0,4,2,1], edu:[2,3],   tags:["三年制","中级工"] },
+  { name:"航空服务",                     score:[1,0,1,4,2,0], edu:[2,3],   tags:["三年制","中级工"] },
+  { name:"护理",                         score:[2,2,0,5,0,1], edu:[1,2,3], tags:["预备技师","三年制","中级工"] },
+  { name:"药物制剂",                     score:[2,4,0,1,0,3], edu:[1,2], tags:["预备技师","三年制"] },
+  { name:"口腔义齿制造",                score:[3,3,1,1,0,2], edu:[1,2], tags:["预备技师","三年制"] },
+  { name:"幼儿教育",                     score:[1,1,2,5,0,0], edu:[1,2], tags:["预备技师","三年制"] },
+  { name:"美容美发与造型(美容)",        score:[2,1,4,2,0,0], edu:[2,3],   tags:["三年制","中级工"] },
+  { name:"宠物医疗与护理",               score:[3,3,0,4,0,0], edu:[1,2], tags:["预备技师","三年制"] },
+  { name:"计算机网络应用（人工智能技术应用）", score:[1,5,2,0,0,1], edu:[1,2], tags:["预备技师","三年制"] },
+  { name:"计算机网络应用（大数据技术应用）",  score:[1,5,1,0,0,2], edu:[1,2], tags:["预备技师","三年制"] },
+  { name:"计算机网络应用（网络管理）",         score:[2,4,0,0,0,3], edu:[1,2], tags:["预备技师","三年制"] },
+  { name:"计算机广告制作（数字媒体艺术、AI创意设计）", score:[1,2,5,0,0,0], edu:[1,2], tags:["预备技师","三年制"] },
+  { name:"室内设计",                     score:[2,1,5,0,0,1], edu:[1,2,3], tags:["预备技师","三年制","中级工"] },
+  { name:"法律事务(司法警务)",          score:[0,2,0,1,3,3], edu:[1,2], tags:["预备技师","三年制"] },
+  { name:"高尔夫球运动与管理",          score:[2,0,1,3,3,1], edu:[2,3],   tags:["三年制","中级工"] },
+];
+
+const eduLabels = {
+  1: { label: "大专相关专业毕业生", badge: "🎓 大专背景", filter: "四年制" },
+  2: { label: "高中/中职/中技毕业生", badge: "🎓 高中/中职背景", filter: "三年制" },
+  3: { label: "初中毕业生", badge: "🎓 初中背景", filter: "中级工 / 高级技工" }
+};
+
+const eduAllFilterLabels = {
+  1: ["预备技师", "三年制", "四年制"],
+  2: ["预备技师", "三年制", "四年制", "中级工"],
+  3: ["中级工", "高级技工", "三年制"]
+};
+
+let selectedEdu = null;
+let currentQ = 0;
+let answers = [];
+const total = questions.length;
+
+function selectEdu(type) {
+  selectedEdu = type;
+  document.querySelectorAll('.edu-option').forEach(el => el.classList.remove('selected'));
+  document.getElementById('edu-' + type).classList.add('selected');
+  document.getElementById('eduStartBtn').disabled = false;
+}
+
+function startTest() {
+  currentQ = 0;
+  answers = new Array(total).fill(-1);
+  showScreen('question');
+  renderQuestion();
+}
+
+function startFromWelcome() {
+  startTest();
+}
+
+function renderQuestion() {
+  const q = questions[currentQ];
+  document.getElementById('questionText').textContent = `第 ${currentQ + 1} / ${total} 题 · ${q.q}`;
+  const container = document.getElementById('optionsContainer');
+  const labels = ['非常符合', '比较符合', '一般', '不符合'];
+  container.innerHTML = labels.map((label, i) => `
+    <div class="option${answers[currentQ]===i?' selected':''}" onclick="selectOption(${i})">${label}</div>
+  `).join('');
+
+  document.getElementById('prevBtn').style.visibility = currentQ === 0 ? 'hidden' : 'visible';
+  const nextBtn = document.getElementById('nextBtn');
+  nextBtn.disabled = answers[currentQ] === -1;
+  nextBtn.textContent = currentQ === total - 1 ? '查看结果 →' : '下一题 →';
+
+  updateProgress();
+}
+
+function selectOption(idx) {
+  answers[currentQ] = idx;
+  document.querySelectorAll('.option').forEach((el, i) => el.classList.toggle('selected', i === idx));
+  document.getElementById('nextBtn').disabled = false;
+}
+
+function nextQuestion() {
+  if (answers[currentQ] === -1) return;
+  if (currentQ < total - 1) {
+    currentQ++;
+    renderQuestion();
+  } else {
+    showResult();
+  }
+}
+
+function prevQuestion() {
+  if (currentQ > 0) { currentQ--; renderQuestion(); }
+}
+
+function updateProgress() {
+  document.getElementById('progressWrap').style.display = 'block';
+  const pct = Math.round((currentQ / total) * 100);
+  document.getElementById('progressText').textContent = `题目 ${currentQ + 1} / ${total}`;
+  document.getElementById('progressPct').textContent = pct + '%';
+  document.getElementById('progressBar').style.width = pct + '%';
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+}
+
+let currentFilter = 'all';
+
+function showResult() {
+  showScreen('result');
+  document.getElementById('progressWrap').style.display = 'none';
+
+  // 学历徽章
+  document.getElementById('eduBadge').textContent = eduLabels[selectedEdu].badge;
+
+  // 计算各维度原始分
+  const raw = [0,0,0,0,0,0];
+  const weights = [2, 1, 0, -1];
+  questions.forEach((q, qi) => {
+    const ans = answers[qi];
+    if (ans === -1) return;
+    q.dims.forEach((w, di) => { raw[di] += w * weights[ans]; });
+  });
+
+  const maxW = [18,18,18,18,18,18];
+  const scores = raw.map((r, i) => Math.min(100, Math.round((r / maxW[i]) * 100)));
+
+  const sorted = dimLetters.map((l, i) => ({l, s: scores[i]})).sort((a,b) => b.s - a.s);
+  const topType = sorted[0].l;
+  const top3 = sorted.slice(0, 3).map(x => x.l).join('');
+
+  const typeDisplay = top3.split('').map(l => `<span style="color:${dimColors[l]}; margin:0 4px;">${l}</span>`).join('');
+  document.getElementById('mainTypeDisplay').innerHTML = typeDisplay + `<div style="font-size:1.1rem; color:#94a3b8; margin-top:6px;">${top3} 型组合</div>`;
+  document.getElementById('mainTypeLabel').textContent = `代表类型：${dimNames[topType]}（${topType}）`;
+
+  // 柱状图
+  const chartEl = document.getElementById('riasecChart');
+  chartEl.innerHTML = dimLetters.map((l, i) => `
+    <div class="riasec-bar fade-in" style="animation-delay:${i*0.08}s">
+      <div class="riasec-label">
+        <span><span class="letter" style="color:${dimColors[l]};font-weight:700;">${l}</span> ${dimNames[l]}</span>
+        <span class="score">${scores[i]}分</span>
+      </div>
+      <div class="bar-bg">
+        <div class="bar-fill" style="width:0%;background:${dimColors[l]};" data-width="${scores[i]}%"></div>
+      </div>
+    </div>
+  `).join('');
+
+  // 类型描述
+  document.getElementById('typeDesc').innerHTML = `<strong style="color:#c4b5fd;">${topType} - ${dimNames[topType]}</strong><br><p>${dimDescs[topType]}</p>`;
+
+  // 专业匹配
+  const majorScores = majorRules.map(m => {
+    let match = 0;
+    m.score.forEach((w, i) => { match += w * scores[i]; });
+    return { name: m.name, match, tags: m.tags, edu: m.edu };
+  }).sort((a,b) => b.match - a.match);
+
+  // 过滤按钮
+  const filterBar = document.getElementById('eduFilterBar');
+  const allowedTags = eduAllFilterLabels[selectedEdu];
+  filterBar.innerHTML = `
+    <button class="edu-filter-btn active" onclick="filterMajors('all', this)">全部专业</button>
+    ${allowedTags.map(t => `<button class="edu-filter-btn" onclick="filterMajors('${t}', this)">${t}</button>`).join('')}
+  `.replace(/四年制/g, '四年制').replace(/高级技工/g, '高级技工');
+
+  // 渲染专业列表
+  renderMajors(majorScores, 'all');
+
+  // 动画
+  setTimeout(() => {
+    document.querySelectorAll('.bar-fill').forEach(bar => bar.style.width = bar.dataset.width);
+  }, 100);
+}
+
+function filterMajors(filter, btn) {
+  currentFilter = filter;
+  document.querySelectorAll('.edu-filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  const raw = [0,0,0,0,0,0];
+  const weights = [2, 1, 0, -1];
+  questions.forEach((q, qi) => {
+    const ans = answers[qi];
+    if (ans === -1) return;
+    q.dims.forEach((w, di) => { raw[di] += w * weights[ans]; });
+  });
+  const maxW = [18,18,18,18,18,18];
+  const scores = raw.map((r, i) => Math.min(100, Math.round((r / maxW[i]) * 100)));
+
+  const majorScores = majorRules.map(m => {
+    let match = 0;
+    m.score.forEach((w, i) => { match += w * scores[i]; });
+    return { name: m.name, match, tags: m.tags, edu: m.edu };
+  }).sort((a,b) => b.match - a.match);
+
+  renderMajors(majorScores, filter);
+}
+
+function renderMajors(majorScores, filter) {
+  const allowedTags = eduAllFilterLabels[selectedEdu];
+  const maxMatch = majorScores[0].match;
+  const majorList = document.getElementById('majorList');
+
+  let filtered = majorScores;
+  if (filter !== 'all') {
+    filtered = majorScores.filter(m => m.tags.includes(filter));
+  }
+
+  if (filtered.length === 0) {
+    majorList.innerHTML = `<div style="text-align:center; color:#64748b; padding:30px; font-size:0.9rem;">暂无符合条件的专业</div>`;
+    return;
+  }
+
+  majorList.innerHTML = filtered.map((m, i) => {
+    const pct = Math.round(m.match / maxMatch * 100);
+    const isTop = i < 3;
+    const tagHTML = m.tags.filter(t => allowedTags.includes(t)).map(t =>
+      `<span class="major-tag ${t}">${t}</span>`
+    ).join('');
+    return `
+      <div class="major-item fade-in" style="animation-delay:${i*0.06}s">
+        <span class="major-rank ${isTop?'top':''}">${i+1}</span>
+        <span class="major-name">${m.name}</span>
+        <div class="major-tags">${tagHTML}</div>
+        <span class="major-match">匹配度 <strong>${pct}%</strong></span>
+      </div>
+    `;
+  }).join('');
+}
+
+function retest() {
+  selectedEdu = null;
+  currentQ = 0;
+  answers = new Array(total).fill(-1);
+  document.querySelectorAll('.edu-option').forEach(el => el.classList.remove('selected'));
+  document.getElementById('eduStartBtn').disabled = true;
+  showScreen('edu');
+}
+</script>
+</body>
+</html>
