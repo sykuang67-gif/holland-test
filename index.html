@@ -529,7 +529,7 @@ function renderMajors(majorScores, filter) {
   }
 
   majorList.innerHTML = filtered.map((m, i) => {
-    const pct = Math.round(m.match / maxMatch * 100);
+    const pct = Math.min(100, Math.round(m.match / maxMatch * 100));
     const isTop = i < 3;
     const tagHTML = m.tags.filter(t => allowedTags.includes(t)).map(t =>
       `<span class="major-tag ${t}">${t}</span>`
